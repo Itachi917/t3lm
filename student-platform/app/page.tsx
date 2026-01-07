@@ -1,12 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Book, Trophy, Target, Zap } from 'lucide-react';
-import { auth } from "@/auth";
-
 export default async function Home() {
-  const session = await auth();
-  // Fallback to mock user for development/verification if auth fails in sandbox
-  const userName = session?.user?.name || "Alex Student (Dev)";
+  const userName = "Alex Student (Dev)";
+
 
   return (
     <div className="space-y-8">
