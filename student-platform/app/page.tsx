@@ -1,8 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Book, Trophy, Target, Zap } from 'lucide-react';
+import { auth } from "@/auth";
+
 export default async function Home() {
-  const userName = "Alex Student (Dev)";
+  const session = await auth();
+  const userName = session?.user?.name || "Alex Student (Dev)";
+
 
 
   return (
