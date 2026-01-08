@@ -55,7 +55,7 @@ function getNextClass(schedule: any[]) {
 
     // Simple Logic: Find a class today that hasn't started yet
     // Data Format: "[ 13:00_14:00 ] MO SU TU"
-    const upcoming = schedule.find(sec => {
+    const upcoming = schedule.find((sec: any) => {
         const timePart = sec.time.split(']')[0].replace('[','').trim(); // "13:00_14:00"
         const dayPart = sec.time.split(']')[1] || ""; // " MO SU TU"
         
@@ -141,7 +141,6 @@ export default async function Home() {
                 <Clock className="w-6 h-6 text-[#004D98]" />
             </div>
          </div>
-         {/* Placeholders for future features */}
          <div className="bg-white border-t-4 border-[#EDBB00] p-4 rounded shadow-sm opacity-60">
             <p className="text-xs font-bold text-slate-500 uppercase">Assignments</p>
             <div className="flex items-end justify-between">
@@ -182,4 +181,53 @@ export default async function Home() {
                             </p>
                         </div>
                         <div className="text-right w-full md:w-auto flex flex-row md:flex-col justify-between items-center md:items-end">
-                             <div className="text
+                             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</div>
+                             <span className="bg-[#EDBB00] text-[#004D98] text-sm font-black px-3 py-1 rounded shadow-sm">
+                                {sec.room || "TBA"}
+                             </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Right: Next Class Widget */}
+        <div className="space-y-6">
+             <div className="bg-[#004D98] text-white rounded-xl p-6 relative overflow-hidden shadow-lg border-2 border-[#EDBB00]">
+                <div className="relative z-10 text-center">
+                    <h3 className="text-sm font-bold text-[#EDBB00] uppercase tracking-widest mb-4 border-b border-[#EDBB00]/30 pb-2">
+                        Next Class
+                    </h3>
+                    
+                    {nextClass ? (
+                        <>
+                            <div className="text-5xl font-black mb-2 tracking-tighter text-white">
+                                {nextClass.time.split(']')[0].replace('[','').split('_')[0].trim()}
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-2 mb-4 backdrop-blur-sm">
+                                <p className="font-bold text-md leading-tight text-[#EDBB00] mb-1">{nextClass.subject.name}</p>
+                                <p className="text-xs font-medium uppercase tracking-wide">{nextClass.type}</p>
+                            </div>
+                            <p className="text-sm font-mono opacity-80 mb-6 bg-[#A50044] inline-block px-3 py-1 rounded">
+                                Room: {nextClass.room}
+                            </p>
+                        </>
+                    ) : (
+                        <div className="py-10">
+                            <p className="text-2xl font-bold text-[#EDBB00]">All Done!</p>
+                            <p className="text-sm opacity-80">No more classes today.</p>
+                        </div>
+                    )}
+
+                    <Button className="w-full bg-[#A50044] hover:bg-white hover:text-[#A50044] text-white font-bold uppercase transition-colors">
+                        Open Calendar
+                    </Button>
+                </div>
+                {/* Decorative BG */}
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#A50044] rounded-full opacity-50 blur-3xl"></div>
+             </div>
+        </div>
+      </div>
+    </div>
+  );
+}
