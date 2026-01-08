@@ -1,63 +1,66 @@
-
-import prisma from "@/lib/db"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
-import { Mail, MapPin, Clock } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-
-async function getStaff() {
-  return await prisma.staff.findMany()
-}
+import { auth } from "@/auth";
+import prisma from "@/lib/db";
+import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
+import { StaffDirectory } from "@/components/staff-directory";
 
 export default async function StaffPage() {
-  const staffMembers = await getStaff()
+  const session = await auth();
+  if (!session?.user?.email) redirect("/login");
+
+  // 1. Fetch ALL sections
+  // We fetch raw data and will group it in Javascript to be flexible
+  const allSections = await prisma.universitySection.findMany({
+    where: {
+        NOT: { instructor: null } // Filter out sections with no instructor
+    },
+    orderBy: { instructor: 'asc' }
+  });
+
+  // 2. Group by Instructor
+  const staffMap = new Map<string, any[]>();
+
+  allSections.forEach((sec) => {
+    // Normalize name (trim spaces, handle 'null' strings)
+    const name = sec.instructor?.trim() || "Unknown Staff";
+    
+    // Skip generic placeholder names if you want
+    if (name === "Lecturer" || name === "Staff" || name === "--") return;
+
+    if (!staffMap.has(name)) {
+        staffMap.set(name, []);
+    }
+    staffMap.get(name)?.push(sec);
+  });
+
+  // Convert to array for the component
+  const staffList = Array.from(staffMap.entries()).map(([name, sections]) => ({
+    name,
+    sections
+  }));
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-end">
+    <div className="p-6 md:p-10 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b-4 border-[#004D98] pb-6">
         <div>
-            <h1 className="text-3xl font-bold font-mono text-white">Faculty Staff</h1>
-            <p className="text-slate-400">Find professors, TAs, and office hours.</p>
+            <h1 className="text-4xl font-black uppercase italic text-[#004D98] tracking-tighter mb-2 flex items-center gap-3">
+                <Users className="w-10 h-10 text-[#A50044]" />
+                Staff Directory
+            </h1>
+            <p className="text-slate-500 font-bold">
+                Find instructors and view their office hours/teaching schedules.
+            </p>
+        </div>
+        <div className="hidden md:block">
+             <div className="bg-[#A50044] text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg border border-[#EDBB00]">
+                TOTAL STAFF: <span className="text-[#EDBB00] font-mono text-lg">{staffList.length}</span>
+             </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {staffMembers.map((staff) => (
-             <div key={staff.id} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-colors">
-                <div className="flex p-6 gap-4">
-                    <img
-                        src={staff.imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.name}`}
-                        alt={staff.name}
-                        className="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700"
-                    />
-                    <div>
-                        <h3 className="font-bold text-white text-lg">{staff.name}</h3>
-                        <span className="inline-block bg-slate-800 text-emerald-400 text-xs px-2 py-1 rounded mb-2 font-mono">{staff.role}</span>
-                    </div>
-                </div>
-
-                <div className="px-6 pb-6 space-y-3">
-                    <div className="flex items-center gap-3 text-sm text-slate-400">
-                        <MapPin className="w-4 h-4 text-slate-500" />
-                        <span>{staff.location}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-400">
-                        <Clock className="w-4 h-4 text-slate-500" />
-                        <span>{staff.timetable}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-400">
-                        <Mail className="w-4 h-4 text-slate-500" />
-                        <span className="truncate">{staff.email}</span>
-                    </div>
-                </div>
-
-                <div className="px-6 pb-6 pt-0">
-                    <Button className="w-full bg-slate-800 hover:bg-slate-700 text-white" variant="outline">
-                        Book Appointment
-                    </Button>
-                </div>
-             </div>
-        ))}
-      </div>
+      {/* The Directory Widget */}
+      <StaffDirectory staffList={staffList} />
     </div>
-  )
+  );
 }
