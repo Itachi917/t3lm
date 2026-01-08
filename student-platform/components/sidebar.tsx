@@ -1,8 +1,8 @@
-
 import Link from 'next/link';
-import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock } from 'lucide-react';
+import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { auth, signOut } from "@/auth";
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -14,7 +14,9 @@ const navItems = [
   { name: 'Focus Room', href: '/focus', icon: Clock },
 ];
 
-export function Sidebar({ className }: { className?: string }) {
+export async function Sidebar({ className }: { className?: string }) {
+  const session = await auth();
+
   return (
     <div className={cn("flex flex-col h-screen w-64 bg-slate-900 border-r border-slate-800 text-slate-100", className)}>
       <div className="p-6 border-b border-slate-800">
@@ -47,12 +49,34 @@ export function Sidebar({ className }: { className?: string }) {
                 <div className="bg-emerald-500 h-1.5 rounded-full w-2/3"></div>
             </div>
         </div>
+
         <Link href="/profile">
              <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white">
                 <Settings className="w-5 h-5 mr-3" />
                 Settings
             </Button>
         </Link>
+
+        {session ? (
+            <form
+              action={async () => {
+                "use server"
+                await signOut({ redirectTo: "/login" })
+              }}
+            >
+              <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/30">
+                <LogOut className="w-5 h-5 mr-3" />
+                Sign Out
+              </Button>
+            </form>
+        ) : (
+            <Link href="/login">
+              <Button variant="ghost" className="w-full justify-start text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/30">
+                <LogIn className="w-5 h-5 mr-3" />
+                Sign In
+              </Button>
+            </Link>
+        )}
       </div>
     </div>
   );
