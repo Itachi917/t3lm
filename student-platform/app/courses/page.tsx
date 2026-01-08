@@ -1,90 +1,130 @@
+import { auth } from "@/auth";
+import prisma from "@/lib/db";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { BookOpen, GraduationCap, ArrowRight, MoreVertical, FileText, Video, Folder } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import prisma from "@/lib/db"
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { PlayCircle, FileText } from 'lucide-react'
+export default async function CoursesPage() {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/login");
 
-async function getCourses(category?: string) {
-  const where = category ? { category: { contains: category } } : {}
-
-  return await prisma.course.findMany({
-    where,
-    include: {
-      _count: {
-        select: { chapters: true }
-      }
+  // 1. Fetch User's Schedule with Subject Info
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { 
+        schedule: { 
+            include: { subject: true } 
+        } 
     }
-  })
-}
+  });
 
-export default async function CoursesPage({ searchParams }: { searchParams: { category?: string } }) {
-  const { category } = await Promise.resolve(searchParams);
-  const courses = await getCourses(category)
+  if (!user || !user.schedule.length) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+        <div className="bg-slate-100 p-6 rounded-full mb-6">
+            <BookOpen className="w-12 h-12 text-slate-400" />
+        </div>
+        <h1 className="text-3xl font-black text-[#004D98] mb-2 uppercase">No Courses Found</h1>
+        <p className="text-slate-500 max-w-md mb-8">
+            You haven't selected your schedule yet. Go to the dashboard to pick your subjects first.
+        </p>
+        <Link href="/">
+            <Button className="bg-[#EDBB00] text-[#004D98] hover:bg-[#A50044] hover:text-white font-black uppercase tracking-widest px-8 py-6">
+                Go to Dashboard
+            </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // 2. Deduplicate Subjects
+  // (You might have 3 sections for "Math", but we only want 1 Course Card)
+  const uniqueSubjectsMap = new Map();
+  
+  user.schedule.forEach(sec => {
+    if (!uniqueSubjectsMap.has(sec.subject.code)) {
+      uniqueSubjectsMap.set(sec.subject.code, sec.subject);
+    }
+  });
+
+  const myCourses = Array.from(uniqueSubjectsMap.values());
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-6 md:p-10 space-y-8">
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b-4 border-[#A50044] pb-6">
         <div>
-            <h1 className="text-3xl font-bold font-mono text-white">All Courses</h1>
-            <p className="text-slate-400">Explore the curriculum and start learning.</p>
+            <h1 className="text-4xl font-black uppercase italic text-[#004D98] tracking-tighter mb-2">
+                My Courses
+            </h1>
+            <p className="text-slate-500 font-bold">
+                Semester 1 • {myCourses.length} Active Subjects
+            </p>
         </div>
-        {/* Filter Buttons */}
-        <div className="flex gap-2">
-            <Link href="/courses">
-                <Button variant={!category ? "outline" : "ghost"} size="sm" className={!category ? "bg-slate-900 border-slate-700" : "text-slate-400"}>All</Button>
-            </Link>
-            <Link href="/courses?category=Programming">
-                <Button variant={category === 'Programming' ? "outline" : "ghost"} size="sm" className={category === 'Programming' ? "bg-slate-900 border-slate-700" : "text-slate-400"}>Programming</Button>
-            </Link>
-            <Link href="/courses?category=Web">
-                <Button variant={category === 'Web' ? "outline" : "ghost"} size="sm" className={category === 'Web' ? "bg-slate-900 border-slate-700" : "text-slate-400"}>Web</Button>
-            </Link>
+        <div className="hidden md:block">
+             <div className="bg-[#004D98] text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg border border-[#EDBB00]">
+                STUDENT ID: <span className="text-[#EDBB00] font-mono">{user.id.slice(0,8).toUpperCase()}</span>
+             </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <Link href={`/courses/${course.id}`} key={course.id} className="group">
-            <Card className="h-full bg-slate-900 border-slate-800 hover:border-emerald-500/50 transition-all hover:shadow-lg hover:shadow-emerald-900/20">
-              <div className="aspect-video relative bg-slate-800 overflow-hidden rounded-t-xl">
-                 {/* Fallback image if thumbnail is invalid/missing */}
-                 <img
-                    src={course.thumbnail || "https://placehold.co/600x400/1e293b/FFF?text=Course"}
-                    alt={course.title}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                 />
-                 <div className="absolute top-2 right-2">
-                    <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white border-0">
-                        {course.category}
-                    </Badge>
-                 </div>
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl text-slate-100 group-hover:text-emerald-400 transition-colors">
-                    {course.title}
-                </CardTitle>
-                <CardDescription className="text-slate-400 line-clamp-2">
-                    {course.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                        <PlayCircle className="w-4 h-4" />
-                        <span>{course._count.chapters} Chapters</span>
+      {/* Courses Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {myCourses.map((subject, index) => (
+          <div 
+            key={subject.code} 
+            className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col h-full relative"
+          >
+            {/* Card Header (Colored Bar) */}
+            <div className={`h-2 w-full ${index % 2 === 0 ? 'bg-[#004D98]' : 'bg-[#A50044]'}`}></div>
+            
+            <div className="p-6 flex-1 flex flex-col">
+                {/* Top Row */}
+                <div className="flex justify-between items-start mb-4">
+                    <span className="bg-slate-100 text-slate-600 font-mono font-bold text-xs px-2 py-1 rounded">
+                        {subject.code}
+                    </span>
+                    <button className="text-slate-300 hover:text-[#004D98]">
+                        <MoreVertical className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-xl font-black text-[#004D98] leading-tight mb-4 group-hover:text-[#A50044] transition-colors">
+                    {subject.name}
+                </h3>
+
+                {/* Quick Stats (Placeholder for future content) */}
+                <div className="grid grid-cols-3 gap-2 mb-6 mt-auto">
+                    <div className="flex flex-col items-center justify-center bg-slate-50 rounded-lg p-2 hover:bg-[#EDBB00]/20 transition-colors cursor-pointer">
+                        <Folder className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[10px] font-bold uppercase text-slate-500">Files</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <FileText className="w-4 h-4" />
-                        <span>Notes Included</span>
+                    <div className="flex flex-col items-center justify-center bg-slate-50 rounded-lg p-2 hover:bg-[#EDBB00]/20 transition-colors cursor-pointer">
+                        <Video className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[10px] font-bold uppercase text-slate-500">Lecs</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center bg-slate-50 rounded-lg p-2 hover:bg-[#EDBB00]/20 transition-colors cursor-pointer">
+                        <FileText className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[10px] font-bold uppercase text-slate-500">Notes</span>
                     </div>
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+
+                {/* Action Button */}
+                <Link href={`/courses/${subject.code}`} className="w-full">
+                    <Button className="w-full bg-white border-2 border-[#004D98] text-[#004D98] hover:bg-[#004D98] hover:text-white font-black uppercase tracking-widest group-hover:bg-[#A50044] group-hover:border-[#A50044] group-hover:text-white transition-all">
+                        View Content <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                </Link>
+            </div>
+
+            {/* Background Decoration Icon */}
+            <GraduationCap className="absolute -bottom-4 -right-4 w-32 h-32 text-slate-100 -rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+          </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
