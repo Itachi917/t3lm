@@ -57,6 +57,7 @@ export async function Sidebar({ className }: { className?: string }) {
             </Button>
         </Link>
 
+        {/* Dynamic Sign In / Sign Out Button */}
         {session ? (
             <form
               action={async () => {
