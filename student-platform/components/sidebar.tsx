@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Leaderboard', href: '/leaderboard', icon: Award },
   { name: 'Resources', href: '/resources', icon: Briefcase },
   { name: 'Focus Room', href: '/focus', icon: Clock },
+  { name: 'My Timetable', href: '/timetable', icon: Calendar },
 ];
 
 export async function Sidebar({ className }: { className?: string }) {
