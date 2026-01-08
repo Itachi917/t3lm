@@ -15,6 +15,7 @@ model User {
   password      String?
   image         String?
   role          String    @default("STUDENT") // STUDENT, ADMIN
+  schedule      UniversitySection[] @relation("StudentSchedule")
 
   // Gamification
   points        Int       @default(0)
@@ -187,4 +188,25 @@ model SharedResource {
   author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime  @default(now())
+}
+model UniversitySubject {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  sections    UniversitySection[]
+}
+
+model UniversitySection {
+  id          String   @id @default(cuid())
+  type        String
+  section     Int
+  time        String
+  room        String?
+  instructor  String?
+  building    String?
+  
+  subjectId   String
+  subject     UniversitySubject @relation(fields: [subjectId], references: [id])
+
+  students    User[]   @relation("StudentSchedule")
 }
