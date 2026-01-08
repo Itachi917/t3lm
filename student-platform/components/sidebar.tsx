@@ -1,17 +1,17 @@
 import Link from 'next/link';
-import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock, LogIn, ShieldCheck } from 'lucide-react';
+import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock, LogIn, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { auth, signOut } from "@/auth";
 
 const navItems = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Training', href: '/courses', icon: BookOpen },
-  { name: 'Squad', href: '/staff', icon: Users },
-  { name: 'Club Forum', href: '/forums', icon: MessageCircle },
-  { name: 'Trophies', href: '/leaderboard', icon: Award },
-  { name: 'Kit Room', href: '/resources', icon: Briefcase },
-  { name: 'Focus Zone', href: '/focus', icon: Clock },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Courses', href: '/courses', icon: BookOpen },
+  { name: 'Staff', href: '/staff', icon: Users },
+  { name: 'Community', href: '/forums', icon: MessageCircle },
+  { name: 'Leaderboard', href: '/leaderboard', icon: Award },
+  { name: 'Resources', href: '/resources', icon: Briefcase },
+  { name: 'Focus Room', href: '/focus', icon: Clock },
 ];
 
 export async function Sidebar({ className }: { className?: string }) {
@@ -21,12 +21,13 @@ export async function Sidebar({ className }: { className?: string }) {
     <div className={cn("flex flex-col h-screen w-64 bg-[#004D98] text-white border-r border-[#A50044]", className)}>
       <div className="p-6 border-b border-[#A50044]">
         <div className="flex items-center gap-2">
-            <ShieldCheck className="w-8 h-8 text-[#EDBB00]" />
+            {/* Swapped Shield for GraduationCap but kept the Gold color */}
+            <GraduationCap className="w-8 h-8 text-[#EDBB00]" />
             <div>
                 <h1 className="text-2xl font-black italic tracking-tighter uppercase text-[#EDBB00]">
-                BARÇA<span className="text-white">LEARN</span>
+                T3LM<span className="text-white">.APP</span>
                 </h1>
-                <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">Més que un club</p>
+                <p className="text-[10px] font-bold tracking-widest text-slate-300 uppercase">Student Platform</p>
             </div>
         </div>
       </div>
@@ -36,6 +37,7 @@ export async function Sidebar({ className }: { className?: string }) {
           <Link
             key={item.href}
             href={item.href}
+            // Keeping the "Barça" Hover Effect (Red Background + Gold Text)
             className="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-wide rounded-none hover:bg-[#A50044] hover:text-[#EDBB00] transition-all duration-300 clip-path-slant"
           >
             <item.icon className="w-5 h-5 mr-3" />
@@ -45,11 +47,11 @@ export async function Sidebar({ className }: { className?: string }) {
       </nav>
 
       <div className="p-4 border-t border-[#A50044] bg-[#003870] space-y-4">
-        {/* Match Timer Widget */}
+        {/* Changed "Next Match" to "Next Class" */}
         <div className="bg-[#A50044] p-4 rounded-lg text-center border border-[#EDBB00]">
-            <p className="text-xs font-bold text-[#EDBB00] uppercase mb-1">Next Match</p>
-            <p className="text-2xl font-black text-white font-mono">14:02</p>
-            <p className="text-[10px] text-white/80">vs REAL MADRID</p>
+            <p className="text-xs font-bold text-[#EDBB00] uppercase mb-1">Next Class</p>
+            <p className="text-2xl font-black text-white font-mono">14:00</p>
+            <p className="text-[10px] text-white/80">PYTHON 101</p>
         </div>
 
         {session ? (
