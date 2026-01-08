@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock, LogIn, GraduationCap } from 'lucide-react';
+import { Home, BookOpen, Users, Award, Briefcase, Settings, LogOut, MessageCircle, Clock, LogIn, GraduationCap, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { auth, signOut } from "@/auth";
@@ -22,7 +22,6 @@ export async function Sidebar({ className }: { className?: string }) {
     <div className={cn("flex flex-col h-screen w-64 bg-[#004D98] text-white border-r border-[#A50044]", className)}>
       <div className="p-6 border-b border-[#A50044]">
         <div className="flex items-center gap-2">
-            {/* Swapped Shield for GraduationCap but kept the Gold color */}
             <GraduationCap className="w-8 h-8 text-[#EDBB00]" />
             <div>
                 <h1 className="text-2xl font-black italic tracking-tighter uppercase text-[#EDBB00]">
@@ -38,7 +37,6 @@ export async function Sidebar({ className }: { className?: string }) {
           <Link
             key={item.href}
             href={item.href}
-            // Keeping the "Barça" Hover Effect (Red Background + Gold Text)
             className="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-wide rounded-none hover:bg-[#A50044] hover:text-[#EDBB00] transition-all duration-300 clip-path-slant"
           >
             <item.icon className="w-5 h-5 mr-3" />
@@ -48,7 +46,7 @@ export async function Sidebar({ className }: { className?: string }) {
       </nav>
 
       <div className="p-4 border-t border-[#A50044] bg-[#003870] space-y-4">
-        {/* Changed "Next Match" to "Next Class" */}
+        {/* Static Widget - You can update this later to be dynamic too if you want */}
         <div className="bg-[#A50044] p-4 rounded-lg text-center border border-[#EDBB00]">
             <p className="text-xs font-bold text-[#EDBB00] uppercase mb-1">Next Class</p>
             <p className="text-2xl font-black text-white font-mono">14:00</p>
