@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/sidebar";
-// 👇 1. THIS IMPORT IS REQUIRED
 import { ChatWidget } from "@/components/chat/chat-widget"; 
 import { cn } from "@/lib/utils";
 import AuthProvider from "@/components/auth-provider";
@@ -34,19 +33,21 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {/* Main Wrapper */}
-            <div className="min-h-screen relative">
+            {/* Main Content Wrapper */}
+            <div className="min-h-screen relative flex">
               
               <Sidebar userSession={session} />
               
-              <main className="md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300">
+              {/* Added w-full to ensure it takes width properly */}
+              <main className="flex-1 md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300 w-full">
                 {children}
               </main>
 
-              {/* 👇 2. THIS IS THE BUTTON. IT MUST BE HERE. */}
-              <ChatWidget />
-              
             </div>
+
+            {/* MOVED OUTSIDE THE MAIN DIV - This forces it to top layer */}
+            <ChatWidget />
+
           </ThemeProvider>
         </AuthProvider>
       </body>
