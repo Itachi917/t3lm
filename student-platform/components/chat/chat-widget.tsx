@@ -1,117 +1,141 @@
+"use client"
 
-"use client";
-
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { MessageSquare, X, Send, Bot } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { useChat } from "ai/react"
+import { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { MessageCircle, X, Send, Bot, User, Loader2, Sparkles } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
-    { role: 'assistant', content: 'Hi there! I can help you find notes, explain concepts, or quiz you. What do you need?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false)
+  
+  // This hook connects to your new API route automatically
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    api: '/api/chat',
+  })
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
   useEffect(() => {
-    if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (isOpen) {
+      scrollToBottom()
     }
-  }, [messages, isOpen]);
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMsg = input;
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
-    setIsLoading(true);
-
-    try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: userMsg, context: { currentPath: pathname } })
-        });
-        const data = await res.json();
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
-    } catch (e) {
-        setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I'm having trouble connecting right now." }]);
-    } finally {
-        setIsLoading(false);
-    }
-  };
+  }, [messages, isOpen])
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {!isOpen && (
-        <Button
-            onClick={() => setIsOpen(true)}
-            className="h-14 w-14 rounded-full bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/30 flex items-center justify-center transition-transform hover:scale-110"
-        >
-            <MessageSquare className="w-6 h-6 text-white" />
-        </Button>
-      )}
-
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      
+      {/* Chat Window */}
       {isOpen && (
-        <div className="bg-slate-900 border border-slate-700 w-80 md:w-96 h-[500px] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
-            {/* Header */}
-            <div className="bg-slate-800 p-4 flex justify-between items-center border-b border-slate-700">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                        <Bot className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-white text-sm">Study Buddy AI</h3>
-                        <p className="text-xs text-emerald-400">Online</p>
-                    </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-slate-400 hover:text-white">
-                    <X className="w-4 h-4" />
-                </Button>
+        <div className="mb-4 w-[350px] md:w-[400px] h-[500px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+          
+          {/* Header */}
+          <div className="p-4 bg-[#004D98] flex justify-between items-center shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 p-1.5 rounded-lg">
+                <Sparkles className="w-5 h-5 text-[#EDBB00]" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">AI Tutor</h3>
+                <p className="text-[10px] text-slate-300 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                  Online
+                </p>
+              </div>
             </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/20 h-8 w-8"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
-            {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
-                {messages.map((m, i) => (
-                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`
-                            max-w-[80%] rounded-2xl px-4 py-2 text-sm
-                            ${m.role === 'user'
-                                ? 'bg-emerald-600 text-white rounded-tr-none'
-                                : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'}
-                        `}>
-                            {m.content}
-                        </div>
-                    </div>
-                ))}
-                {isLoading && (
-                     <div className="flex justify-start">
-                        <div className="bg-slate-800 text-slate-200 rounded-2xl rounded-tl-none border border-slate-700 px-4 py-2 text-sm flex gap-1">
-                            <span className="animate-bounce">.</span><span className="animate-bounce delay-100">.</span><span className="animate-bounce delay-200">.</span>
-                        </div>
-                    </div>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-950/50">
+            {messages.length === 0 && (
+              <div className="text-center mt-10 opacity-50 space-y-2">
+                <Bot className="w-12 h-12 mx-auto text-slate-500" />
+                <p className="text-sm text-slate-400">Ask me anything about your studies!</p>
+              </div>
+            )}
+            
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={cn(
+                  "flex gap-3 max-w-[85%] text-sm",
+                  m.role === "user" ? "ml-auto flex-row-reverse" : ""
                 )}
-            </div>
+              >
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                  m.role === "user" ? "bg-[#004D98] text-white" : "bg-slate-800 text-[#EDBB00]"
+                )}>
+                  {m.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                </div>
+                
+                <div className={cn(
+                  "p-3 rounded-2xl shadow-sm",
+                  m.role === "user" 
+                    ? "bg-[#004D98] text-white rounded-tr-none" 
+                    : "bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none"
+                )}>
+                  {m.content}
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex gap-3 text-sm">
+                 <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4 text-[#EDBB00]" />
+                 </div>
+                 <div className="bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-700 flex items-center">
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                 </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-            {/* Input */}
-            <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
-                <input
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                    placeholder="Ask a question..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <Button size="icon" onClick={handleSend} disabled={isLoading} className="rounded-full bg-emerald-500 hover:bg-emerald-600 h-9 w-9">
-                    <Send className="w-4 h-4" />
-                </Button>
-            </div>
+          {/* Input Area */}
+          <form onSubmit={handleSubmit} className="p-3 bg-slate-900 border-t border-slate-700 flex gap-2">
+            <Input
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Type a question..."
+              className="bg-slate-950 border-slate-700 text-white focus:ring-[#004D98]"
+            />
+            <Button 
+              type="submit" 
+              size="icon" 
+              disabled={isLoading || !input.trim()}
+              className="bg-[#EDBB00] text-[#004D98] hover:bg-[#A50044] hover:text-white transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
         </div>
       )}
+
+      {/* Toggle Button */}
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+            "h-14 w-14 rounded-full shadow-xl transition-all duration-300 hover:scale-105",
+            isOpen ? "bg-slate-700 text-white" : "bg-[#EDBB00] text-[#004D98] hover:bg-[#A50044] hover:text-white"
+        )}
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-7 h-7" />}
+      </Button>
     </div>
-  );
+  )
 }
