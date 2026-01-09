@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils"
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   
-  // This hook connects to your new API route automatically
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
   })
@@ -28,11 +27,12 @@ export function ChatWidget() {
   }, [messages, isOpen])
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    // UPDATED HERE: z-[9999] forces it to be the top-most layer
+    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end">
       
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 w-[350px] md:w-[400px] h-[500px] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+        <div className="mb-4 w-[300px] md:w-[400px] h-[500px] bg-slate-900 border-2 border-[#EDBB00] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
           
           {/* Header */}
           <div className="p-4 bg-[#004D98] flex justify-between items-center shrink-0">
@@ -126,15 +126,15 @@ export function ChatWidget() {
         </div>
       )}
 
-      {/* Toggle Button */}
+      {/* Toggle Button - UPDATED STYLING */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-            "h-14 w-14 rounded-full shadow-xl transition-all duration-300 hover:scale-105",
+            "h-14 w-14 rounded-full shadow-[0_0_20px_rgba(237,187,0,0.5)] transition-all duration-300 hover:scale-110 border-2 border-white",
             isOpen ? "bg-slate-700 text-white" : "bg-[#EDBB00] text-[#004D98] hover:bg-[#A50044] hover:text-white"
         )}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-7 h-7" />}
+        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-8 h-8" />}
       </Button>
     </div>
   )
