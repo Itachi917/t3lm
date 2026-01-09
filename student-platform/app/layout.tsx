@@ -7,6 +7,7 @@ import { ChatWidget } from "@/components/chat/chat-widget";
 import { cn } from "@/lib/utils";
 import AuthProvider from "@/components/auth-provider";
 import { auth } from "@/auth";
+import { LanguageProvider } from "@/components/language-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -27,28 +28,22 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.variable, mono.variable, "bg-slate-950 font-sans antialiased text-slate-100")}>
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {/* Main Content Wrapper */}
-            <div className="min-h-screen relative flex">
-              
-              <Sidebar userSession={session} />
-              
-              {/* Added w-full to ensure it takes width properly */}
-              <main className="flex-1 md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300 w-full">
-                {children}
-              </main>
-
-            </div>
-
-            {/* MOVED OUTSIDE THE MAIN DIV - This forces it to top layer */}
-            <ChatWidget />
-
-          </ThemeProvider>
+          <LanguageProvider> {/* <--- 1. WRAP EVERYTHING HERE */}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="min-h-screen relative flex">
+                <Sidebar userSession={session} />
+                
+                <main className="flex-1 md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300 w-full">
+                  {children}
+                </main>
+              </div>
+            </ThemeProvider>
+          </LanguageProvider> {/* <--- Close tag */}
         </AuthProvider>
       </body>
     </html>
