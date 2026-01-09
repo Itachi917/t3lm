@@ -30,7 +30,8 @@
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5",
     "ai": "^4.1.17",
-    "@ai-sdk/openai": "^1.1.9"
+    "@ai-sdk/openai": "^1.1.9",
+    "@ai-sdk/google": "^1.1.10"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
