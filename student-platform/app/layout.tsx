@@ -3,7 +3,8 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/sidebar";
-import { ChatWidget } from "@/components/chat/chat-widget"; // <--- 1. Import it here
+// 👇 1. THIS IMPORT IS REQUIRED
+import { ChatWidget } from "@/components/chat/chat-widget"; 
 import { cn } from "@/lib/utils";
 import AuthProvider from "@/components/auth-provider";
 import { auth } from "@/auth";
@@ -33,15 +34,18 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            {/* Main Wrapper */}
             <div className="min-h-screen relative">
+              
               <Sidebar userSession={session} />
               
               <main className="md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300">
                 {children}
               </main>
 
-              {/* 2. Place it here, just before the closing div */}
+              {/* 👇 2. THIS IS THE BUTTON. IT MUST BE HERE. */}
               <ChatWidget />
+              
             </div>
           </ThemeProvider>
         </AuthProvider>
