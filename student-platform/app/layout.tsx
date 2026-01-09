@@ -3,10 +3,10 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/sidebar";
-import { ChatWidget } from "@/components/chat/chat-widget";
+import { ChatWidget } from "@/components/chat/chat-widget"; // <--- 1. Import it here
 import { cn } from "@/lib/utils";
 import AuthProvider from "@/components/auth-provider";
-import { auth } from "@/auth"; // Import auth to get the session
+import { auth } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -21,7 +21,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 1. Fetch the session on the server
   const session = await auth();
 
   return (
@@ -35,18 +34,13 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <div className="min-h-screen relative">
-              
-              {/* 2. Pass session to Sidebar so it knows if user is logged in */}
               <Sidebar userSession={session} />
               
-              {/* 3. Main Content Wrapper 
-                 - md:ml-64: Pushes content right on desktop to make room for sidebar
-                 - pt-20: Pushes content down on mobile to clear the new header
-              */}
               <main className="md:ml-64 pt-20 md:pt-0 min-h-screen p-4 md:p-8 transition-all duration-300">
                 {children}
               </main>
 
+              {/* 2. Place it here, just before the closing div */}
               <ChatWidget />
             </div>
           </ThemeProvider>
