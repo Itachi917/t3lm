@@ -1,26 +1,34 @@
 import { google } from '@ai-sdk/google';
+import { streamText } from 'ai';
 
-// We manually simulate the AI stream to prevent crashing
+export const maxDuration = 30;
+
 export async function POST(req: Request) {
   try {
-    // 1. Check the Key
-    const hasKey = !!process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    const keyStatus = hasKey ? "✅ DETECTED" : "❌ MISSING";
-    
-    // 2. Prepare the Diagnostics Message
-    const message = `DIAGNOSTICS REPORT:
-    - Server Status: ONLINE
-    - API Key: ${keyStatus}
-    - AI Provider: Google Gemini
-    
-    If the Key is MISSING: Go to Vercel > Settings > Env Variables and add GOOGLE_GENERATIVE_AI_API_KEY.
-    If the Key is DETECTED: Your Google Key might be invalid or blocked. Try generating a new one.`;
+    const { messages } = await req.json();
 
-    // 3. Send it using the "Secret Code" format (Data Stream Protocol)
-    // The '0:' prefix tells the frontend "This is a text chunk"
+    // 1. Try to call Google
+    const result = streamText({
+      model: google('gemini-1.5-flash'),
+      system: 'You are a helpful academic assistant for T3lm.app.',
+      messages,
+    });
+
+    // 2. Return the stream (Standard Way)
+    return result.toDataStreamResponse();
+
+  } catch (error: any) {
+    // 3. SAFETY NET: If Google rejects the key, we catch the error here
+    // and manually send it to the chat window so you can see it.
+    
+    const errorMessage = `GOOGLE API ERROR: ${error.message}`;
+    console.error(errorMessage);
+
+    // Manually format the error as a chat message
     const stream = new ReadableStream({
       start(controller) {
-        const text = JSON.stringify(message); // JSON stringify handles newlines correctly
+        // "0:" is the secret code for "Text Message"
+        const text = JSON.stringify(errorMessage);
         controller.enqueue(new TextEncoder().encode(`0:${text}\n`));
         controller.close();
       },
@@ -29,16 +37,5 @@ export async function POST(req: Request) {
     return new Response(stream, { 
       headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
     });
-
-  } catch (error: any) {
-    // Catch-all for other crashes
-    const errText = JSON.stringify(`CRITICAL SERVER CRASH: ${error.message}`);
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(`0:${errText}\n`));
-        controller.close();
-      },
-    });
-    return new Response(stream, { headers: { 'Content-Type': 'text/plain' } });
   }
 }
