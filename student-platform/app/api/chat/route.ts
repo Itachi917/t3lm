@@ -1,29 +1,40 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
-// Allow responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
+    // 1. Check if the Key exists at all
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      throw new Error("CRITICAL: The Environment Variable 'GOOGLE_GENERATIVE_AI_API_KEY' is missing in Vercel.");
+    }
+
+    // 2. Try to generate text
     const result = streamText({
-      // 1. Use the Google provider (Gemini 1.5 Flash is free & fast)
       model: google('gemini-1.5-flash'),
-      
-      system: `You are a helpful AI academic assistant for a student platform.
-      - You are friendly, encouraging, and concise.
-      - You can help with coding, math, and study schedules.`,
-      
       messages,
     });
 
     return result.toDataStreamResponse();
     
-  } catch (error) {
-    console.error("AI Error:", error);
-    // This returns the error to the chat window so you can see it
-    return new Response(JSON.stringify({ error: 'Check Vercel Env Variables' }), { status: 500 });
+  } catch (error: any) {
+    // --- ERROR HANDLER ---
+    // Instead of crashing, we send the error message back to the chat UI
+    // so you can read it!
+    const errorMessage = `SYSTEM ERROR: ${error.message}`;
+    
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(errorMessage));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, { 
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    });
   }
 }
